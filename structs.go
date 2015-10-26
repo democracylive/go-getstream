@@ -15,11 +15,18 @@ type Activity struct {
 	ForeignID string `json:"foreign_id,omitempty"`
 }
 
+func (a *Activity) Sign(secret string) {
+	for i := range a.To {
+		a.To[i].Sign(secret)
+	}
+}
+
 type ActivitiesResult struct {
 	Next        string      `json:"next,omitempty"`
 	RawDuration string      `json:"duration,omitempty"`
-	Results     []*Activity `json:"results,omitempty"`
+	Results     interface{} `json:"results,omitempty"`
 }
+
 
 type Options struct {
 	Limit  int `json:"limit"`

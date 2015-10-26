@@ -14,7 +14,8 @@ var _ fmt.Stringer = Slug{}
 
 func TestSlug(t *testing.T) {
 	a.Equal(t, "test:456", Slug{"test", "456", ""}.String())
-	a.Equal(t, "test:123 token", Slug{"test", "123", "token"}.String())
+	a.Equal(t, "test:123", Slug{"test", "123", "token"}.String())
+	a.Equal(t, "test123 token", Slug{"test", "123", "token"}.Signature())
 }
 
 func TestSlug_Valid(t *testing.T) {

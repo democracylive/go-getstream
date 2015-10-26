@@ -23,17 +23,3 @@ func Sign(secret, message string) string {
 	digest := base64.StdEncoding.EncodeToString(mac.Sum(nil))
 	return urlSafe(digest)
 }
-
-func SignSlug(secret string, slug Slug) Slug {
-	return Slug{slug.Slug, slug.ID, Sign(secret, slug.Slug+slug.ID)}
-}
-
-func SignActivity(secret string, activity *Activity) *Activity {
-	result := &Activity{}
-	*result = *activity
-	for i, slug := range result.To {
-		result.To[i] = SignSlug(secret, slug)
-	}
-
-	return result
-}

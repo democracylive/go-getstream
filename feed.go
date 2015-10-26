@@ -1,4 +1,8 @@
 package getstream
+import (
+	"reflect"
+	"errors"
+)
 
 type Feed struct {
 	*Client
@@ -7,28 +11,55 @@ type Feed struct {
 
 func (f *Feed) Slug() Slug { return f.slug }
 
-func (f *Feed) AddActivity(activity *Activity) (*Activity, error) {
-	activity = SignActivity(f.secret, activity)
+// Wrapper can either be a *getstream.Activity{} or
+// it can be a struct that extends getstream.Activity like this:
+// type ExtendedActivity struct {
+//   *getstream.Activity
+//   AdditionalField string `json:"additionalField"`
+// }
+func (f *Feed) AddActivity(wrapper interface{}) error {
+	val := reflect.ValueOf(wrapper)
+	if val.Kind() != reflect.Ptr {
+		return errors.New("Must pass a pointer to an activity into AddActivity()")
+	}
 
-	result := &Activity{}
-	e := f.post(result, f.url(), f.slug, activity)
-	return result, e
+	// Allow for an Activity to be passed in or a struct that extends Activity
+//	var activity *Activity
+	if val.Elem().Type().String() == "getstream.Activity" {
+		wrapper.(*Activity).Sign(f.secret)
+	} else {
+		elem := val.Elem()
+		field := elem.FieldByName("Activity")
+		if !field.IsValid() {
+			return errors.New("Activity must extend getstream.Activity")
+		}
+		if field.Kind() != reflect.Ptr {
+			return errors.New("Anonyous field *Activity must be a pointer")
+		}
+		activity := field.Interface().(*Activity)
+		activity.Sign(f.secret)
+//		field.Elem().Set(reflect.ValueOf(activity).Elem())
+	}
+
+//	result := reflect.New(reflect.TypeOf(wrapper).Elem()).Interface()
+	e := f.post(wrapper, f.url(), f.slug, wrapper)
+	return e
 }
 
 func (f *Feed) AddActivities(activities []*Activity) error {
-	signeds := make([]*Activity, len(activities), len(activities))
-	for i, activity := range activities {
-		signeds[i] = SignActivity(f.secret, activity)
+	for i := range activities {
+		activities[i].Sign(f.secret)
 	}
 
 	// TODO: A result type to recieve the listing result.
 	panic("not yet implemented.")
 }
 
-func (f *Feed) Activities(opt *Options) ([]*Activity, error) {
+func (f *Feed) Activities(target interface{}, opt *Options) (string, error) {
 	result := ActivitiesResult{}
+	result.Results = target
 	e := f.get(&result, f.url(), f.slug, opt)
-	return result.Results, e
+	return result.Next, e
 }
 
 func (f *Feed) RemoveActivity(id string) error {

@@ -19,8 +19,8 @@ func (s Slug) Signature() string {
 	return s.Slug + s.ID + " " + s.Token
 }
 
-func (s Slug) WithToken(token string) Slug {
-	return Slug{s.Slug, s.ID, token}
+func (s *Slug) Sign(secret string) {
+	s.Token = Sign(secret, s.Slug+s.ID)
 }
 
 func (s Slug) MarshalJSON() ([]byte, error) {

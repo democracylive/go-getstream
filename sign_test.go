@@ -12,15 +12,19 @@ func TestSign(t *testing.T) {
 }
 
 func TestSignSlug(t *testing.T) {
-	expected := TestFeedSlug.WithToken(TestToken)
-	actual := SignSlug(MockAPISecret, TestFeedSlug)
+	expected := TestFeedSlug
+	expected.Token = TestToken
+
+	actual := TestFeedSlug
+	actual.Sign(MockAPISecret)
+
 	a.Equal(t, expected, actual)
 	a.Equal(t, TestFeedSignature, actual.Signature())
 }
 
 func TestSignActivity(t *testing.T) {
-	act := NewTargetTestActivity()
-	act = SignActivity(MockAPISecret, act)
+	act := TestActivityTarget
+	act.Sign(MockAPISecret)
 	a.Equal(t, TestTargetFeedSignature, act.To[0].Signature())
 	a.Equal(t, TestTargetFeedSignature2, act.To[1].Signature())
 }

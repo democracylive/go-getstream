@@ -46,9 +46,12 @@ func Connect(key, secret, appID, location string) *Client {
 func (c *Client) BaseURL() *url.URL { return c.baseURL }
 
 func (c *Client) Feed(slug, id string) *Feed {
+	s := Slug{slug, id, ""}
+	s.Sign(c.secret)
+
 	return &Feed{
 		Client: c,
-		slug:   SignSlug(c.secret, Slug{slug, id, ""}),
+		slug:   s,
 	}
 }
 

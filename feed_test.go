@@ -13,28 +13,28 @@ func TestFeed(t *testing.T) {
 
 	client := ConnectTestClient("")
 	feed := client.Feed(TestFeedSlug.Slug, TestFeedSlug.ID)
-	activity := NewTargetTestActivity()
+	activity := TestActivityTarget
 
 	t.Log("adding activity...")
-	addedActivity, e := feed.AddActivity(activity)
+	e := feed.AddActivity(&activity)
 	a.NoError(t, e)
-	a.NotEqual(t, activity, addedActivity, "AddActivity should not modify existing instance.")
-	a.NotNil(t, addedActivity)
-	a.NotEmpty(t, addedActivity.ID)
+	a.NotEmpty(t, activity.ID)
 
 	t.Log("listing added activities...")
-	activities, e := feed.Activities(nil)
+	activities := []*getstream.Activity{}
+	_, e = feed.Activities(&activities, nil)
 	a.NoError(t, e)
 	a.NotEmpty(t, activities)
 	a.Len(t, activities, 1) // otherwise we might be getting result from another test run.
-	a.Equal(t, addedActivity.ID, activities[0].ID)
+	a.Equal(t, activity.ID, activities[0].ID)
 
 	t.Log("removing added activity...")
-	e = feed.RemoveActivity(addedActivity.ID)
+	e = feed.RemoveActivity(activity.ID)
 	a.NoError(t, e)
 
 	t.Log("listing added activities again...")
-	activities, e = feed.Activities(nil)
+	activities = []*getstream.Activity{}
+	_, e = feed.Activities(&activities, nil)
 	a.NoError(t, e)
 	a.Empty(t, activities)
 }
@@ -48,7 +48,8 @@ func TestFollow(t *testing.T) {
 
 	// Check the follower feed and make sure it's empty
 	follower := client.Feed(TestFollowerSlug.Slug, TestFollowerSlug.ID)
-	activities, err := follower.Activities(nil)
+	activities := []*getstream.Activity{}
+	_, err := follower.Activities(&activities, nil)
 	a.NoError(t, err)
 	if !a.Len(t, activities, 0) {
 		return // The rest of this test depends on just one activity
@@ -56,8 +57,8 @@ func TestFollow(t *testing.T) {
 
 	// Post an activity to the main test feed
 	feed := client.Feed(TestFeedSlug.Slug, TestFeedSlug.ID)
-	activity := NewSimpleTestActivity()
-	addedActivity, err := feed.AddActivity(activity)
+	activity := TestActivitySimple
+	err = feed.AddActivity(&activity)
 	a.NoError(t, err)
 
 	// Now follow the main feed
@@ -65,10 +66,11 @@ func TestFollow(t *testing.T) {
 	a.NoError(t, err)
 
 	// We should now have content in the follower feed
-	activities, err = follower.Activities(nil)
+	activities = []*getstream.Activity{}
+	_, err = follower.Activities(&activities, nil)
 	a.NoError(t, err)
 	if a.Len(t, activities, 1) {
-		a.Equal(t, addedActivity.ID, activities[0].ID)
+		a.Equal(t, activity.ID, activities[0].ID)
 	}
 
 	// Add a second follower so we can test limits and paging
@@ -105,7 +107,7 @@ func TestFollow(t *testing.T) {
 		a.Equal(t, follower.Slug().String(), followers[0].FeedId)
 	}
 
-	opt = getstream.FollowingOptions{Filter: "flat:1"}
+	opt = getstream.FollowingOptions{Filter: TestFeedSlug.String()}
 	following, err = follower2.Following(&opt)
 	a.NoError(t, err)
 	if a.Len(t, following, 1) {
@@ -125,7 +127,8 @@ func TestFollow(t *testing.T) {
 	a.NoError(t, err)
 
 	// We should be left with a empty feeds
-	activities, err = follower.Activities(nil)
+	activities = []*getstream.Activity{}
+	_, err = follower.Activities(&activities, nil)
 	a.NoError(t, err)
 	a.Len(t, activities, 0)
 
@@ -143,6 +146,26 @@ func TestFollow(t *testing.T) {
 	a.Len(t, following, 0)
 
 	// Clean up the post in the main test feed
-	err = feed.RemoveActivity(addedActivity.ID)
+	err = feed.RemoveActivity(activity.ID)
 	a.NoError(t, err)
+}
+
+func TestExtendedActivity(t *testing.T) {
+	client := ConnectTestClient("")
+	feed := client.Feed(TestFeedSlug.Slug, TestFeedSlug.ID)
+
+	activity := TestActivityExtended
+	err := feed.AddActivity(&activity)
+	a.NoError(t, err)
+
+	activities := []ExtendedActivity{}
+	_, err = feed.Activities(&activities, nil)
+
+	a.NoError(t, err)
+	if a.Len(t, activities, 1) {
+		a.Equal(t, activity.ID, activities[0].ID)
+		a.Equal(t, activity.Title, activities[0].Title)
+	}
+
+	feed.RemoveActivity(activity.ID)
 }

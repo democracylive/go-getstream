@@ -7,12 +7,12 @@ import (
 
 const (
 	TestToken            = "iFX1l5f_lIUWgZFBnv5UisTTW18"
-	TestTargetFeedToken  = "vVm2GeUokcbeFGEPfOWYdbG1ZjY"
-	TestTargetFeedToken2 = "EGW6PWbZqmSwYZvxv97-qbPTYas"
+	TestTargetFeedToken  = "Gn3Dzit2bk3MuClNjvbXO-49RMI"
+	TestTargetFeedToken2 = "oRJR8IFZU-QiBX89CSuPcwqxz8I"
 
 	TestFeedSignature        = "flat1 " + TestToken
-	TestTargetFeedSignature  = "flat2 " + TestTargetFeedToken
-	TestTargetFeedSignature2 = "flat3 " + TestTargetFeedToken2
+	TestTargetFeedSignature  = "flattarget " + TestTargetFeedToken
+	TestTargetFeedSignature2 = "flattarget2 " + TestTargetFeedToken2
 )
 
 var (
@@ -29,6 +29,29 @@ var (
 	TestFollower2Slug   = Slug{"flat", "follower2", ""}
 	TestTargetFeedSlug  = Slug{"flat", "target", ""}
 	TestTargetFeedSlug2 = Slug{"flat", "target2", ""}
+
+	TestActivitySimple = Activity{
+		Actor:  TestFeedSlug,
+		Verb:   "statusUpdate",
+		Object: "user1",
+	}
+
+	TestActivityTarget = Activity{
+		Actor:  TestFeedSlug,
+		Verb:   "comment",
+		Object: "comment1",
+		To:     []Slug{TestTargetFeedSlug, TestTargetFeedSlug2},
+	}
+
+	TestActivityExtended = ExtendedActivity {
+		Activity: &Activity{
+		Actor: TestFeedSlug,
+		Verb: "comment",
+		Object: "article:1",
+		},
+		Title: "Comment title",
+		Comment: "Comment on this item.",
+	}
 )
 
 // Mock test client for testing signing logic
@@ -41,18 +64,8 @@ func ConnectTestClient(region string) *Client {
 	return Connect(TestAPIKey, TestAPISecret, TestAppID, region)
 }
 
-func NewSimpleTestActivity() *Activity {
-	return &Activity{
-		Actor:  TestFeedSlug,
-		Verb:   "statusUpdate",
-		Object: "user1",
-	}
-}
-func NewTargetTestActivity() *Activity {
-	return &Activity{
-		Actor:  TestFeedSlug,
-		Verb:   "comment",
-		Object: "comment1",
-		To:     []Slug{TestTargetFeedSlug, TestTargetFeedSlug2},
-	}
+type ExtendedActivity struct {
+	*Activity
+	Title string `json:"title"`
+	Comment string `json:"comment"`
 }

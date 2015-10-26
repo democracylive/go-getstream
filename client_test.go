@@ -21,6 +21,10 @@ func TestClient_BaseURL(t *testing.T) {
 func TestClient_Feed(t *testing.T) {
 	client := MockTestClient("")
 	feed := client.Feed(TestFeedSlug.Slug, TestFeedSlug.ID)
-	a.Equal(t, TestFeedSlug.WithToken(TestToken), feed.Slug())
+
+	slug := TestFeedSlug
+	slug.Sign(MockAPISecret)
+
+	a.Equal(t, slug, feed.Slug())
 	a.Equal(t, TestFeedSignature, feed.Slug().Signature())
 }
