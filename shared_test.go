@@ -1,40 +1,58 @@
 package getstream_test
 
 import (
-	. "github.com/hyperworks/go-getstream"
+	. "github.com/onedotover/go-getstream"
 	"os"
 )
 
 const (
-	TestToken            = "xfHQwFY2MreP7bTGsoxQ7s2ebLA"
-	TestTargetFeedToken  = "3ZIhnU1vw524lXGsOd7wb0DkmrU"
-	TestTargetFeedToken2 = "IKjr7WED0O3ROLZGEIFrCSwBo4Y"
+	TestToken            = "iFX1l5f_lIUWgZFBnv5UisTTW18"
+	TestTargetFeedToken  = "vVm2GeUokcbeFGEPfOWYdbG1ZjY"
+	TestTargetFeedToken2 = "EGW6PWbZqmSwYZvxv97-qbPTYas"
 
-	TestFeedSignature        = "userflat14483198-3e43-4a91-a2ed-fc88dcf2fd7b " + TestToken
-	TestTargetFeedSignature  = "userflat72d8ee6c-c27c-49a5-9311-c5e0e67356e5 " + TestTargetFeedToken
-	TestTargetFeedSignature2 = "userflate1f8917c-e6dd-4d06-b6ff-59805d8e2b96 " + TestTargetFeedToken2
+	TestFeedSignature        = "flat1 " + TestToken
+	TestTargetFeedSignature  = "flat2 " + TestTargetFeedToken
+	TestTargetFeedSignature2 = "flat3 " + TestTargetFeedToken2
 )
 
 var (
+	MockAPIKey    = "api-key"
+	MockAPISecret = "gthc2t9gh7pzq52f6cky8w4r4up9dr6rju9w3fjgmkv6cdvvav2ufe5fv7e2r9qy" // From http://getstream.io/docs_rest/#feed_authentication
+	MockAppID     = "app-id"
+
 	TestAPIKey    = os.Getenv("GETSTREAM_KEY")
 	TestAPISecret = os.Getenv("GETSTREAM_SECRET")
 	TestAppID     = os.Getenv("GETSTREAM_APPID")
 
-	TestFeedSlug        = Slug{"userflat", "14483198-3e43-4a91-a2ed-fc88dcf2fd7b", ""}
-	TestTargetFeedSlug  = Slug{"userflat", "72d8ee6c-c27c-49a5-9311-c5e0e67356e5", ""}
-	TestTargetFeedSlug2 = Slug{"userflat", "e1f8917c-e6dd-4d06-b6ff-59805d8e2b96", ""}
-	TestObjectSlug      = Slug{"testobject", "2109704a-e048-4f5c-b534-1ff8322b8ae9", ""}
+	TestFeedSlug        = Slug{"flat", "1", ""}
+	TestFollowerSlug    = Slug{"flat", "follower", ""}
+	TestFollower2Slug   = Slug{"flat", "follower2", ""}
+	TestTargetFeedSlug  = Slug{"flat", "target", ""}
+	TestTargetFeedSlug2 = Slug{"flat", "target2", ""}
 )
 
+// Mock test client for testing signing logic
+func MockTestClient(region string) *Client {
+	return Connect(MockAPIKey, MockAPISecret, MockAppID, region)
+}
+
+// Actual connection to test api integration
 func ConnectTestClient(region string) *Client {
 	return Connect(TestAPIKey, TestAPISecret, TestAppID, region)
 }
 
-func NewTestActivity() *Activity {
+func NewSimpleTestActivity() *Activity {
+	return &Activity{
+		Actor:  TestFeedSlug,
+		Verb:   "statusUpdate",
+		Object: "user1",
+	}
+}
+func NewTargetTestActivity() *Activity {
 	return &Activity{
 		Actor:  TestFeedSlug,
 		Verb:   "comment",
-		Object: TestObjectSlug,
+		Object: "comment1",
 		To:     []Slug{TestTargetFeedSlug, TestTargetFeedSlug2},
 	}
 }

@@ -86,9 +86,5 @@ Outer:
 
 func (s Slug) String() string {
 	result := s.Slug + ":" + s.ID
-	if s.Token != "" {
-		result += " " + s.Token
-	}
-
 	return result
 }

@@ -1,7 +1,5 @@
 package getstream
 
-import ()
-
 type Feed struct {
 	*Client
 	slug Slug
@@ -29,7 +27,7 @@ func (f *Feed) AddActivities(activities []*Activity) error {
 
 func (f *Feed) Activities(opt *Options) ([]*Activity, error) {
 	result := ActivitiesResult{}
-	e := f.get(&result, f.url(), f.slug)
+	e := f.get(&result, f.url(), f.slug, opt)
 	return result.Results, e
 }
 
@@ -38,15 +36,26 @@ func (f *Feed) RemoveActivity(id string) error {
 }
 
 func (f *Feed) Follow(feed, id string) error {
-	panic("not implemented.")
+	result := FollowPostResult{}
+	target := feed + ":" + id
+	return f.post(&result, f.url()+"following/", f.slug, FollowPost{Target: target})
 }
 
 func (f *Feed) Unfollow(feed, id string) error {
-	panic("not implemented.")
+	target := feed + ":" + id
+	return f.del(f.url()+"following/"+target+"/", f.slug)
 }
 
-func (f *Feed) Followers(opt *Options) ([]*Feed, error) {
-	panic("not implemented.")
+func (f *Feed) Followers(opt *FollowingOptions) ([]*FollowingInfo, error) {
+	result := FollowingResult{}
+	err := f.get(&result, f.url()+"followers/", f.slug, opt)
+	return result.Results, err
+}
+
+func (f *Feed) Following(opt *FollowingOptions) ([]*FollowingInfo, error) {
+	result := FollowingResult{}
+	err := f.get(&result, f.url()+"following/", f.slug, opt)
+	return result.Results, err
 }
 
 func (f *Feed) url() string {

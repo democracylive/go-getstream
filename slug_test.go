@@ -3,7 +3,7 @@ package getstream_test
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/hyperworks/go-getstream"
+	. "github.com/onedotover/go-getstream"
 	a "github.com/stretchr/testify/assert"
 	"testing"
 )

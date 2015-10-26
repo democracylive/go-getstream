@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 type Client struct {
@@ -50,7 +52,11 @@ func (c *Client) Feed(slug, id string) *Feed {
 	}
 }
 
-func (c *Client) get(result interface{}, path string, slug Slug) error {
+func (c *Client) get(result interface{}, path string, slug Slug, params interface{}) error {
+	path, err := addPathParams(path, params)
+	if err != nil {
+		return err
+	}
 	return c.request(result, "GET", path, slug, nil)
 }
 
@@ -136,4 +142,63 @@ func (c *Client) absoluteUrl(path string) (result *url.URL, e error) {
 	result.RawQuery = qs.Encode()
 
 	return result, nil
+}
+
+func addPathParams(path string, params interface{}) (string, error) {
+	// Simple conversion from struct to query parameters
+	// Only supports basic conversion.
+	val := reflect.ValueOf(params)
+	if val.IsNil() {
+		return path, nil
+	}
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		return path, errors.New("Params must be a struct.")
+	}
+
+	url, err := url.Parse(path)
+	if err != nil {
+		return path, err
+	}
+
+	// Convert the params obejct into query parameters
+	query := url.Query()
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		typField := typ.Field(i)
+		if typField.PkgPath != "" {
+			continue // unexported
+		}
+
+		tag := typField.Tag.Get("url")
+		if tag == "-" {
+			continue
+		}
+
+		// @todo: Add support for more types or utilize url encoding package like
+		// https://github.com/google/go-querystring
+		value := ""
+		valField := val.Field(i)
+		switch valField.Kind() {
+		case reflect.String:
+			value = valField.String()
+		case reflect.Int:
+			if valField.Int() != 0 {
+				value = fmt.Sprintf("%d", valField)
+			}
+		default:
+			value = fmt.Sprintf("%v", valField)
+		}
+
+		// If we have a value set, add it to the query
+		if value != "" {
+			query.Set(tag, value)
+		}
+	}
+	url.RawQuery = query.Encode()
+	return url.String(), nil
 }
