@@ -9,7 +9,6 @@ import (
 type Slug struct {
 	Slug, ID, Token string
 }
-
 func (s Slug) Valid() bool {
 	return s.Slug != "" && s.ID != ""
 }
@@ -32,7 +31,7 @@ func (s Slug) MarshalJSON() ([]byte, error) {
 	return json.Marshal(str)
 }
 
-func (s *Slug) UnmarshalJSON(bytes []byte) error {
+func (s Slug) UnmarshalJSON(bytes []byte) error {
 	var raw interface{}
 	if e := json.Unmarshal(bytes, &raw); e != nil {
 		return e

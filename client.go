@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"log"
 )
 
 type Client struct {
@@ -108,6 +109,7 @@ func (c *Client) request(result interface{}, method, path string, slug Slug, pay
 	switch {
 	case 200 <= resp.StatusCode && resp.StatusCode < 300: // SUCCESS
 		if result != nil {
+//			log.Println("Response", absUrl.String(), string(buffer));
 			if e = json.Unmarshal(buffer, result); e != nil {
 				return e
 			}
@@ -116,7 +118,7 @@ func (c *Client) request(result interface{}, method, path string, slug Slug, pay
 	default:
 		err := &Error{}
 		if e = json.Unmarshal(buffer, err); e != nil {
-			panic(e)
+			log.Println("err", absUrl)
 			return errors.New(string(buffer))
 		}
 

@@ -30,26 +30,29 @@ var (
 	TestTargetFeedSlug  = Slug{"flat", "target", ""}
 	TestTargetFeedSlug2 = Slug{"flat", "target2", ""}
 
+	TestAggregatedSlug = Slug{"aggregated", "1", ""}
+
 	TestActivitySimple = Activity{
-		Actor:  TestFeedSlug,
+		Actor:  "user1",
 		Verb:   "statusUpdate",
 		Object: "user1",
+		ForeignID: "user1",
 	}
 
 	TestActivityTarget = Activity{
-		Actor:  TestFeedSlug,
-		Verb:   "comment",
-		Object: "comment1",
+		Actor:  "user1",
+		Verb:   "taret",
+		Object: "user1",
 		To:     []Slug{TestTargetFeedSlug, TestTargetFeedSlug2},
 	}
 
-	TestActivityExtended = ExtendedActivity {
-		Activity: &Activity{
-		Actor: TestFeedSlug,
-		Verb: "comment",
-		Object: "article:1",
+	TestActivityExtended = ExtendedActivity{
+		Activity: Activity{
+			Actor:  "user3",
+			Verb:   "comment",
+			Object: "article1",
 		},
-		Title: "Comment title",
+		Title:   "Comment title",
 		Comment: "Comment on this item.",
 	}
 )
@@ -65,7 +68,12 @@ func ConnectTestClient(region string) *Client {
 }
 
 type ExtendedActivity struct {
-	*Activity
-	Title string `json:"title"`
+	Activity
+	Title   string `json:"title"`
 	Comment string `json:"comment"`
+}
+
+type AggregatedExtendedActivity struct {
+	AggregatedActivityBase
+	Activities []ExtendedActivity `json:"activities"`
 }

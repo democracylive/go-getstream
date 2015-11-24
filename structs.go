@@ -5,14 +5,17 @@ import (
 )
 
 type Activity struct {
-	ID        string `json:"id,omitempty"`
-	Actor     Slug   `json:"actor"`
+	Id string `json:"id,omitempty"`
+	Actor     string `json:"actor"`
 	Verb      string `json:"verb"`
 	Object    string `json:"object"`
 	Target    string `json:"target,omitempty"`
 	RawTime   string `json:"time,omitempty"`
 	To        []Slug `json:"to,omitempty"`
 	ForeignID string `json:"foreign_id,omitempty"`
+
+	// Response items
+	Origin string `json:"origin,omitempty"`
 }
 
 func (a *Activity) Sign(secret string) {
@@ -21,25 +24,40 @@ func (a *Activity) Sign(secret string) {
 	}
 }
 
+type AggregatedActivityBase struct {
+	Id string `json:"id"`
+	Verb string `json:"verb"`
+	Group string `json:"group"`
+	ActivityCount int `json:"activity_count"`
+	ActorCount int `json:"actor_count"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Activities interface{} `json:"activities"`
+}
+type AggregatedActivity struct {
+	AggregatedActivityBase
+	Activities []*Activity `json:"activities"`
+}
+
+
 type ActivitiesResult struct {
 	Next        string      `json:"next,omitempty"`
 	RawDuration string      `json:"duration,omitempty"`
 	Results     interface{} `json:"results,omitempty"`
 }
 
+type ActivityOptions struct {
+	Limit  int `url:"limit"`
+	Offset int `url:"offset"`
 
-type Options struct {
-	Limit  int `json:"limit"`
-	Offset int `json:"offset"`
-
-	IdGTE string `json:"id_gte"`
-	IdGT  string `json:"id_gt"`
-	IdLTE string `json:"id_lte"`
-	IdLT  string `json:"id_lt"`
-
-	Feeds    []*Feed `json:"feeds"`
-	MarkRead bool    `json:"mark_read"`
-	MarkSeen bool    `json:"mark_seen"`
+	IdGTE string `url:"id_gte"`
+	IdGT  string `url:"id_gt"`
+	IdLTE string `url:"id_lte"`
+	IdLT  string `url:"id_lt"`
+//
+//	Feeds    []*Feed `json:"feeds"`
+//	MarkRead bool    `json:"mark_read"`
+//	MarkSeen bool    `json:"mark_seen"`
 }
 
 type Notification struct {
